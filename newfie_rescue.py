@@ -28,7 +28,9 @@ LOG = [
 DRILLS = ["retrieve", "line_carry", "boat_tow", "victim_rescue"]
 
 def sessions_for(drill):
+    if drill not in DRILLS:
+        raise ValueError(f"'{drill}' isn't a drill in the log. Drills: {', '.join(DRILLS)}.")
     swims = [swim for swim in LOG if swim["drill"] == drill]
     return sorted(swims, key=lambda swim: swim["date"])
 
-print(sessions_for("retrieve"))  
+print(sessions_for("walking"))  
