@@ -70,4 +70,10 @@ def drill_stats(drill):
         "improvement_percent": round((latest - first) / first * 100, 1),
     }
 
-print(drill_stats("victim_rescue"))
+def time_to_reach(meters, drill="victim_rescue"):
+    if meters <= 0:
+        raise ValueError("meters must be more than 0.")
+    latest = pace(sessions_for(drill)[-1])
+    return {"seconds": round(meters / latest, 1), "pace_used_m_per_s": round(latest, 2)}
+
+print(time_to_reach(100,drill = "boat_tow"))
