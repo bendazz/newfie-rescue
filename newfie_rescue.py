@@ -57,22 +57,33 @@ def find_sessions(drill="any", start_date="2000-01-01", end_date="2100-12-31"):
         if start <= parse_date(swim["date"]) <= end
     ]
 
-# One drill, any date
-print(find_sessions(drill="boat_tow"))
+# Each bad call is wrapped in try/except so the script keeps going
+# and we can see every error message in one run.
+
+# Bad drill: caught by sessions_for
+try:
+    print(find_sessions(drill="swimming"))
+except ValueError as err:
+    print("Error:", err)
 print("\n\n")
 
-# Any drill, one month
-print(find_sessions(start_date="2027-07-01", end_date="2027-07-31"))
+# Date in the wrong format: caught by parse_date
+try:
+    print(find_sessions(start_date="July 1, 2027"))
+except ValueError as err:
+    print("Error:", err)
 print("\n\n")
 
-# One drill, one month
-print(find_sessions("victim_rescue", "2027-08-01", "2027-08-31"))
+# Date that doesn't exist: caught by parse_date
+try:
+    print(find_sessions(end_date="2027-06-31"))
+except ValueError as err:
+    print("Error:", err)
 print("\n\n")
 
-# Everything from September on
-print(find_sessions(start_date="2027-09-01"))
-print("\n\n")
-
-# No filters: the whole log
-print(find_sessions())
+# Dates in the wrong order: caught by find_sessions
+try:
+    print(find_sessions(start_date="2027-08-31", end_date="2027-08-01"))
+except ValueError as err:
+    print("Error:", err)
 
