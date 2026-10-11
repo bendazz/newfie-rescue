@@ -57,33 +57,17 @@ def find_sessions(drill="any", start_date="2000-01-01", end_date="2100-12-31"):
         if start <= parse_date(swim["date"]) <= end
     ]
 
-# Each bad call is wrapped in try/except so the script keeps going
-# and we can see every error message in one run.
+def drill_stats(drill):
+    swims = sessions_for(drill)
+    first, latest = pace(swims[0]), pace(swims[-1])
+    return {
+        "drill": drill,
+        "sessions": len(swims),
+        "total_meters": sum(swim["meters"] for swim in swims),
+        "first_pace_m_per_s": round(first, 2),
+        "latest_pace_m_per_s": round(latest, 2),
+        "best_pace_m_per_s": round(max(pace(swim) for swim in swims), 2),
+        "improvement_percent": round((latest - first) / first * 100, 1),
+    }
 
-# Bad drill: caught by sessions_for
-try:
-    print(find_sessions(drill="swimming"))
-except ValueError as err:
-    print("Error:", err)
-print("\n\n")
-
-# Date in the wrong format: caught by parse_date
-try:
-    print(find_sessions(start_date="July 1, 2027"))
-except ValueError as err:
-    print("Error:", err)
-print("\n\n")
-
-# Date that doesn't exist: caught by parse_date
-try:
-    print(find_sessions(end_date="2027-06-31"))
-except ValueError as err:
-    print("Error:", err)
-print("\n\n")
-
-# Dates in the wrong order: caught by find_sessions
-try:
-    print(find_sessions(start_date="2027-08-31", end_date="2027-08-01"))
-except ValueError as err:
-    print("Error:", err)
-
+print(drill_stats("victim_rescue"))
