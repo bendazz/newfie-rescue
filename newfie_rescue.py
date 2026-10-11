@@ -27,10 +27,18 @@ LOG = [
 ]
 DRILLS = ["retrieve", "line_carry", "boat_tow", "victim_rescue"]
 
+def parse_date(text):
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        raise ValueError(f"'{text}' is not a real date in YYYY-MM-DD form.") from None
+
 def sessions_for(drill):
     if drill not in DRILLS:
         raise ValueError(f"'{drill}' isn't a drill in the log. Drills: {', '.join(DRILLS)}.")
     swims = [swim for swim in LOG if swim["drill"] == drill]
     return sorted(swims, key=lambda swim: swim["date"])
 
-print(sessions_for("walking"))  
+print(parse_date("2027-09-11")) 
+
+print(parse_date("July 4, 2027"))
