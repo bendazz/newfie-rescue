@@ -27,6 +27,8 @@ LOG = [
 ]
 DRILLS = ["retrieve", "line_carry", "boat_tow", "victim_rescue"]
 
+#---------helper functions--------------
+
 def parse_date(text):
     try:
         return date.fromisoformat(text)
@@ -39,6 +41,38 @@ def sessions_for(drill):
     swims = [swim for swim in LOG if swim["drill"] == drill]
     return sorted(swims, key=lambda swim: swim["date"])
 
-print(parse_date("2027-09-11")) 
+def pace(swim):
+    return swim["meters"] / swim["seconds"]
 
-print(parse_date("July 4, 2027"))
+#----------------tools-----------------------
+
+def find_sessions(drill="any", start_date="2000-01-01", end_date="2100-12-31"):
+    start, end = parse_date(start_date), parse_date(end_date)
+    if start > end:
+        raise ValueError("start_date is after end_date.")
+    swims = LOG if drill == "any" else sessions_for(drill)
+    return [
+        {**swim, "pace_m_per_s": round(pace(swim), 2)}
+        for swim in swims
+        if start <= parse_date(swim["date"]) <= end
+    ]
+
+# One drill, any date
+print(find_sessions(drill="boat_tow"))
+print("\n\n")
+
+# Any drill, one month
+print(find_sessions(start_date="2027-07-01", end_date="2027-07-31"))
+print("\n\n")
+
+# One drill, one month
+print(find_sessions("victim_rescue", "2027-08-01", "2027-08-31"))
+print("\n\n")
+
+# Everything from September on
+print(find_sessions(start_date="2027-09-01"))
+print("\n\n")
+
+# No filters: the whole log
+print(find_sessions())
+
