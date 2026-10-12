@@ -1,4 +1,5 @@
 from datetime import date
+import json
 
 import anthropic
 from dotenv import load_dotenv
@@ -77,3 +78,73 @@ def time_to_reach(meters, drill="victim_rescue"):
     return {"seconds": round(meters / latest, 1), "pace_used_m_per_s": round(latest, 2)}
 
 print(time_to_reach(100,drill = "boat_tow"))
+
+#--------------------------------------
+DRILL_MEANINGS = ("retrieve (fetch an object), line_carry (take a line to shore), "
+                  "boat_tow (tow a small boat), victim_rescue (bring a swimmer in)")
+DRILL_SCHEMA = {
+    "type": "string",
+    "enum": DRILLS,
+    "description": f"Which drill: {DRILL_MEANINGS}.",
+}
+DATE = {
+    "type": "string",
+    "pattern": r"^\d{4}-\d{2}-\d{2}$",
+    "description": "A date as YYYY-MM-DD.",
+}
+
+TOOLS = [
+    {
+        "name": "find_sessions",
+        "description": f"Lists {DOG}'s training swims, each with its date, drill, distance, "
+                       "time, and pace. Use it to count sessions or look at swims in a date "
+                       "range. Leave out a filter to include everything.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "drill": {**DRILL_SCHEMA, "enum": ["any"] + DRILLS,
+                          "description": f"'any' for every drill, or one of: {DRILL_MEANINGS}."},
+                "start_date": {**DATE, "description": "First date to include, YYYY-MM-DD."},
+                "end_date": {**DATE, "description": "Last date to include, YYYY-MM-DD."},
+            },
+            "required": [],  # every filter is optional
+        },
+    },
+        {
+        "name": "drill_stats",
+        "description": "Sums up one drill: number of sessions, total meters, first, latest "
+                       "and best pace, and percent improvement from first to latest pace. "
+                       "Use it for any question about totals, best pace, or progress; to "
+                       "compare drills, call it once per drill.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"drill": DRILL_SCHEMA},
+            "required": ["drill"],
+        },
+    },
+        {
+        "name": "time_to_reach",
+        "description": f"Estimates how many seconds {DOG} would take to swim a distance, at "
+                       "her latest pace for a drill. Use it for 'how long would she take to "
+                       "reach a swimmer N meters out' questions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "meters": {"type": "number", "description": "Distance in meters, more than 0."},
+                "drill": {**DRILL_SCHEMA,
+                          "description": f"Whose pace to use, victim_rescue if not said: "
+                                         f"{DRILL_MEANINGS}."},
+            },
+            "required": ["meters"],
+        },
+    },
+]
+
+print(TOOLS[0])
+print("\n\n")
+
+print(TOOLS[1])
+print("\n\n")
+
+print(TOOLS[2])
+print("\n\n")
