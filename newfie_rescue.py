@@ -77,7 +77,7 @@ def time_to_reach(meters, drill="victim_rescue"):
     latest = pace(sessions_for(drill)[-1])
     return {"seconds": round(meters / latest, 1), "pace_used_m_per_s": round(latest, 2)}
 
-print(time_to_reach(100,drill = "boat_tow"))
+
 
 #--------------------------------------
 DRILL_MEANINGS = ("retrieve (fetch an object), line_carry (take a line to shore), "
@@ -140,11 +140,48 @@ TOOLS = [
     },
 ]
 
-print(TOOLS[0])
+TOOL_FUNCTIONS = {
+    "find_sessions": find_sessions,
+    "drill_stats": drill_stats,
+    "time_to_reach": time_to_reach,
+}
+
+def run_tool(name, tool_input):
+    """Run one tool call. Returns (result text, is_error) and prints what happened."""
+    print(f"  tool call:   {name}({tool_input})")
+    if name not in TOOL_FUNCTIONS:
+        result, is_error = f"Error: there is no tool called {name}.", True
+    else:
+        try:
+            result, is_error = json.dumps(TOOL_FUNCTIONS[name](**tool_input)), False
+        except Exception as e:  # any tool failure goes back to the model, not a crash
+            result, is_error = f"Error: {e}", True
+    print(f"  tool result: {result}")
+    return result, is_error
+
+# run_tool prints the call and the result itself, so we only print is_error.
+# No try/except needed here: run_tool catches every error and never crashes.
+
+# Success
+result, is_error = run_tool("drill_stats", {"drill": "boat_tow"})
+print("  is_error:   ", is_error)
 print("\n\n")
 
-print(TOOLS[1])
+# The tool's own guard raises a ValueError
+result, is_error = run_tool("time_to_reach", {"meters": -50})
+print("  is_error:   ", is_error)
 print("\n\n")
 
-print(TOOLS[2])
+# A tool that doesn't exist
+result, is_error = run_tool("weather_forecast", {})
+print("  is_error:   ", is_error)
 print("\n\n")
+
+# A misnamed argument: Python raises a TypeError
+result, is_error = run_tool("time_to_reach", {"distance": 80})
+print("  is_error:   ", is_error)
+print("\n\n")
+
+# A missing required argument: also a TypeError
+result, is_error = run_tool("drill_stats", {})
+print("  is_error:   ", is_error)
