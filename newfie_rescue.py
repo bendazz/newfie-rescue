@@ -185,3 +185,31 @@ print("\n\n")
 # A missing required argument: also a TypeError
 result, is_error = run_tool("drill_stats", {})
 print("  is_error:   ", is_error)
+
+#--------------The Loop--------------
+
+SYSTEM = (
+    f"You answer questions about {DOG}'s water-rescue training log. You can't see the "
+    "log, so always use a tool to get the numbers. Pass dates as YYYY-MM-DD. "
+    "If a tool returns an error, explain the problem to the user in one sentence."
+)
+
+def ask(question, max_turns=10):
+    messages = [{"role": "user", "content": question}]
+    for _ in range(max_turns):
+        response = client.messages.create(
+            model=MODEL, max_tokens=1024, system=SYSTEM, tools=TOOLS, messages=messages,
+        )
+        messages.append({"role": "assistant", "content": response.content})
+        if response.stop_reason == "max_tokens":
+            return "Stopped: the answer was cut off at max_tokens."
+        if response.stop_reason != "tool_use":
+            return "".join(block.text for block in response.content if block.type == "text")
+        results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                text, is_error = run_tool(block.name, block.input)
+                results.append({"type": "tool_result", "tool_use_id": block.id,
+                                "content": text, "is_error": is_error})
+        messages.append({"role": "user", "content": results})
+    return "Stopped: too many tool calls in a row."
